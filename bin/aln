@@ -1,0 +1,75 @@
+#!/bin/bash
+#
+#   aln
+#
+
+
+
+
+    # | function(s)
+
+        # | link
+        function link {
+
+            # var - dir
+            dir="$1"
+
+            # | for - file - $dir
+            for src in `find "$dir" -type f`
+            do
+
+                # | src - not - .git
+                if [[ "$src" != *".git"* ]]; then
+
+                    # var - dst
+                    dst=${src#$dir};
+
+                    # var - dst - path
+                    dst_path=$(dirname $dst);
+
+                    # backup - file - existing
+                    if [ -e "$dst" ]; then
+                        if [ ! -L "$dst" ]; then
+                            mv -v "$dst" "$dst.`date +%s`"
+                        fi
+                    fi
+
+                    # remove - existing - symlink
+                    if [ -L "$dst" ]; then
+                        rm -v "$dst"
+                    fi
+
+                    # mkdir - path
+                    mkdir -p "$dst_path"
+
+                    # symlink
+                    ln -v -s "$src" "$dst"
+
+                fi
+                # src - not - .git |
+
+            done
+            # for - file - $1 |
+
+        }
+        # link |
+
+    # function(s) |
+
+
+    # | main
+
+        if [ $# -eq 1 ]; then
+            link "$1"
+        else
+            echo "Usage $0: $0 /path/to/src"
+        fi
+
+    # main |
+
+
+
+
+#
+#   %(#.0)?-
+#
