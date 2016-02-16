@@ -65,7 +65,7 @@
         log "Destination: '$dst'"
 
         # | aln
-        for f in `find "$src" -type f`; do
+        for f in `find "$src" ! -wholename *'/.git'* -type f`; do
 
             # path(s)
             src_file=$( realpath $f )
