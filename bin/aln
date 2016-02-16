@@ -69,10 +69,13 @@
 
             # path(s)
             src_file=$( realpath $f )
-            dst_file="$dst""${src_file#$src}"
+            dst_file="$dst""${src_file#$src/}"
 
             # ? - file - not - exists - and - not symlink
             if [ ! -e "$dst_file" ] && [ ! -L "$dst_file" ]; then
+
+                # create - folder
+                mkdir -p "`dirname "$dst_file"`"
 
                 # symlink - create
                 ln -s "$src_file" "$dst_file"
