@@ -6,64 +6,108 @@
 
 
 
+    # global(s)
+    script_name=$( basename $0 )
+    script_verbose=
+
+
     # | function(s)
 
-        # | link
-        function link {
-
-            # var - dir
-            dir="$1"
-
-            # | for - file - $dir
-            for src in `find "$dir" -type f`
-            do
-
-                # | src - not - .git
-                if [[ "$src" != *".git"* ]]; then
-
-                    # var - dst
-                    dst=${src#$dir};
-
-                    # var - dst - path
-                    dst_path=$(dirname $dst);
-
-                    # backup - file - existing
-                    if [ -e "$dst" ]; then
-                        if [ ! -L "$dst" ]; then
-                            mv -v "$dst" "$dst.`date +%s`"
-                        fi
-                    fi
-
-                    # remove - existing - symlink
-                    if [ -L "$dst" ]; then
-                        rm -v "$dst"
-                    fi
-
-                    # mkdir - path
-                    mkdir -p "$dst_path"
-
-                    # symlink
-                    ln -v -s "$src" "$dst"
-
-                fi
-                # src - not - .git |
-
-            done
-            # for - file - $1 |
-
+        function error {
+            logger -s -p user.error -t "$script_name" "$@"
         }
-        # link |
+
+        function log {
+            logger -s -p user.notice -t "$script_name" "$@"
+        }
+
+        function usage {
+            log  "Usage"
+            echo "$script_name usage: $script_name [-s src/path] [-d dest/path]"
+        }
 
     # function(s) |
 
 
     # | main
 
-        if [ $# -eq 1 ]; then
-            link "$1"
-        else
-            echo "Usage $0: $0 /path/to/src"
-        fi
+        # log - init
+        log "Initiating aln"
+
+        # check - arg(s)
+        [ $# -eq 0 ] && usage && exit
+
+        # arg(s)
+        while getopts ":d:hs:v" FLAG; do
+            case "$FLAG" in
+                d)  dst="$OPTARG"  # destination
+                    ;;
+                h)  usage
+                    exit 2
+                    ;;
+                s)  src="$OPTARG"
+                    ;;
+                v)  script_verbose=1
+                    ;;
+            esac
+        done
+
+        # check - path(s)
+        [ ! -d "$src" ] && error "Invalid source: '$src'"      && exit 2
+        [ ! -d "$dst" ] && error "Invalid destination: '$dst'" && exit 2
+
+        # realpath - path(s)
+        src=$( realpath "$src" )
+        dst=$( realpath "$dst" )
+
+        # log - path(s)
+        log "Source:      '$src'"
+        log "Destination: '$dst'"
+
+        # | aln
+        for f in `find "$src" -type f`; do
+
+            # path(s)
+            src_file=$( realpath $f )
+            dst_file="$dst""${src_file#$src}"
+
+            # ? - file - not - exists - and - not symlink
+            if [ ! -e "$dst_file" ] && [ ! -L "$dst_file" ]; then
+
+                # symlink - create
+                ln -s "$src_file" "$dst_file"
+                log   "$src_file -> $dst_file"
+
+            else
+
+                # | ? - file - symlink
+                if [ -L "$dst_file" ]; then
+
+                    # symlink - reset - force
+                    ln -sf "$src_file" "$dst_file"
+                    log    "$src_file -> $dst_file"
+
+                else
+
+                    # path(s) - backup
+                    dst_file_backup="$dst_file.`date +%s`.bak"
+
+                    # mv - backup
+                    mv -v "$dst_file" "$dst_file_backup"
+                    log "Warning: '$dst_file' exists, moving to '$dst_file_backup'"
+
+                    # symlink - create
+                    ln -s  "$src_file" "$dst_file"
+                    log    "$src_file -> $dst_file"
+
+                fi
+                # ? - file - symlink |
+
+            fi
+            # ? - file - exists |
+
+        done
+        # aln |
 
     # main |
 
