@@ -1,3 +1,3 @@
 #aln
 ##automatic symlink
-Replaces common file(s) with symbolic links, and renames existing.
+Link contents of 'folder_a' with symlinks to same path files in 'folder_b'.
