@@ -14,7 +14,7 @@
     # | function(s)
 
         function error {
-            logger -s -p user.error -t "$script_name" "$@"
+            logger -s -p user.error -t "$script_name" "error: $@"
         }
 
         function log {
@@ -22,7 +22,6 @@
         }
 
         function usage {
-            log  "Usage"
             echo "$script_name usage: $script_name [-s src/path] [-d dest/path]"
         }
 
@@ -30,9 +29,6 @@
 
 
     # | main
-
-        # log - init
-        log "Initiating aln"
 
         # check - arg(s)
         [ $# -eq 0 ] && usage && exit
@@ -53,61 +49,47 @@
         done
 
         # check - path(s)
-        [ ! -d "$src" ] && error "Invalid source: '$src'"      && exit 2
-        [ ! -d "$dst" ] && error "Invalid destination: '$dst'" && exit 2
+        [ ! -d "$src" ] && error "'$src'" && exit 2
+        [ ! -d "$dst" ] && error "'$dst'" && exit 2
 
         # realpath - path(s)
         src=$( realpath "$src" )
         dst=$( realpath "$dst" )
-
-        # log - path(s)
-        log "Source:      '$src'"
-        log "Destination: '$dst'"
 
         # | aln
         for f in `find "$src" ! -wholename *'/.git'* -type f`; do
 
             # path(s)
             src_file=$( realpath $f )
-            dst_file="$dst""${src_file#$src/}"
+            dst_file="$dst""/${src_file#$src/}"
 
             # ? - file - not - exists - and - not symlink
             if [ ! -e "$dst_file" ] && [ ! -L "$dst_file" ]; then
 
+                # path(s) - folder
+                dst_folder="`dirname "$dst_file"`"
+
                 # create - folder
-                mkdir -p "`dirname "$dst_file"`"
-
-                # symlink - create
-                ln -s "$src_file" "$dst_file"
-                log   "$src_file -> $dst_file"
-
-            else
-
-                # | ? - file - symlink
-                if [ -L "$dst_file" ]; then
-
-                    # symlink - reset - force
-                    ln -sf "$src_file" "$dst_file"
-                    log    "$src_file -> $dst_file"
-
-                else
-
-                    # path(s) - backup
-                    dst_file_backup="$dst_file.`date +%s`.bak"
-
-                    # mv - backup
-                    log "Warning: '$dst_file' exists, moving to '$dst_file_backup'"
-                    mv -v "$dst_file" "$dst_file_backup"
-
-                    # symlink - create
-                    ln -s  "$src_file" "$dst_file"
-                    log    "$src_file -> $dst_file"
-
-                fi
-                # ? - file - symlink |
+                mkdir -p "$dst_folder"
+                log "mkdir -p '$dst_folder'"
 
             fi
-            # ? - file - exists |
+
+            # ? - file - exists - and - not - symlink
+            if [ -e "$dst_file" ] && [ ! -L "$dst_file" ]; then
+
+                # path(s) - backup
+                dst_file_backup="$dst_file.`date +%s`.bak"
+
+                # mv - backup
+                mv -v "$dst_file" "$dst_file_backup"
+                log "mv -v '$dst_file' '$dst_file_backup'"
+
+            fi
+
+            # symlink - create
+            ln -sf "$src_file"  "$dst_file"
+            log    "ln -sf '$src_file' '$dst_file'"
 
         done
         # aln |
