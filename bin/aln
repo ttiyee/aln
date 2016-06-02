@@ -82,8 +82,8 @@
                 dst_file_backup="$dst_file.`date +%s`.bak"
 
                 # mv - backup
-                mv -v "$dst_file" "$dst_file_backup"
-                log "mv -v '$dst_file' '$dst_file_backup'"
+                mv "$dst_file" "$dst_file_backup"
+                log "mv '$dst_file' '$dst_file_backup'"
 
             fi
 
