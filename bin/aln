@@ -14,7 +14,7 @@
     # | function(s)
 
         function error {
-            logger -s -p user.error -t "$script_name" "error: $@"
+            logger -s -p user.error -t "$script_name" "$@"
         }
 
         function log {
@@ -49,8 +49,8 @@
         done
 
         # check - path(s)
-        [ ! -d "$src" ] && error "'$src'" && exit 2
-        [ ! -d "$dst" ] && error "'$dst'" && exit 2
+        [ ! -d "$src" ] && error "'$src' not found." && exit 2
+        [ ! -d "$dst" ] && error "'$dst' not found." && exit 2
 
         # realpath - path(s)
         src=$( realpath "$src" )
