@@ -121,7 +121,7 @@
         # arg(s)
         while getopts ":d:hs:v" FLAG; do
             case "$FLAG" in
-                d)  dst="$OPTARG"  # destination
+                d)  dst="$OPTARG"
                     ;;
                 h)  usage
                     exit 2
