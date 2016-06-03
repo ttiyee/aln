@@ -13,6 +13,7 @@
     # ignore(s)
     ignore_paths[0]='.git/'
     ignore_paths[1]='README.md'
+    ignore_paths[2]='INSTALL'
 
 
     # | function(s)
