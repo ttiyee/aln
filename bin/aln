@@ -17,13 +17,85 @@
 
     # | function(s)
 
-        function ignore_path {
-            for i in "${ignore_paths[@]}"; do       # iterate - ignores
-                if [[ "$1" == *"$i"* ]]; then       # check   - valid
-                    return 1                        # return  - invalid
+        function backup_path {
+
+            # file
+            file="$1"
+
+            # ? - file - exists - and - not - symlink
+            if [ -e "$file" ] && [ ! -L "$file" ]; then
+
+                # path(s) - backup
+                file_backup="$file.`date +%s`.bak"
+
+                # ? - mv - backup - valid
+                if mv "$file" "$file_backup"; then
+                    log_notice "mv '$file' '$file_backup'"
+                else
+                    return 1
                 fi
+
+            fi
+
+            # return - valid
+            return 0
+
+        }
+
+        function create_folder {
+
+            # file
+            file="$1"
+
+            # ? - file - not - exists - and - not symlink
+            if [ ! -e "$file" ] && [ ! -L "$file" ]; then
+
+                # path(s) - folder
+                folder="`dirname "$file"`"
+
+                # ? - create - folder - valid
+                if mkdir -p "$folder"; then
+                    log_notice "mkdir -p '$folder'"
+                else
+                    return 1
+                fi
+
+            fi
+
+            # return - valid
+            return 0
+
+        }
+
+        function create_symlink {
+
+            # ? - symlink - valid
+            if ln -sf "$1" "$2"; then
+                log_notice "ln -sf '$1' '$2'"
+            else
+                return 1
+            fi
+
+            # return - valid
+            return 0
+
+        }
+
+        function ignore_path {
+
+            # iterate - ignore -paths
+            for i in "${ignore_paths[@]}"; do
+
+                # ? - return - invalid
+                if [[ "$1" == *"$i"* ]]; then
+                    return 1
+                fi
+
             done
-            return 0                                # return  - valid
+
+            # return - valid
+            return 0
+
         }
 
         function log_error {
@@ -81,33 +153,11 @@
                 continue
             fi
 
-            # ? - file - not - exists - and - not symlink
-            if [ ! -e "$dst_file" ] && [ ! -L "$dst_file" ]; then
+            # create - folder
+            create_folder "$dst_file"
 
-                # path(s) - folder
-                dst_folder="`dirname "$dst_file"`"
-
-                # create - folder
-                mkdir -p "$dst_folder"
-                log_notice "mkdir -p '$dst_folder'"
-
-            fi
-
-            # ? - file - exists - and - not - symlink
-            if [ -e "$dst_file" ] && [ ! -L "$dst_file" ]; then
-
-                # path(s) - backup
-                dst_file_backup="$dst_file.`date +%s`.bak"
-
-                # mv - backup
-                mv "$dst_file" "$dst_file_backup"
-                log_notice "mv '$dst_file' '$dst_file_backup'"
-
-            fi
-
-            # symlink - create
-            ln -sf "$src_file"  "$dst_file"
-            log_notice "ln -sf '$src_file' '$dst_file'"
+            # create - symlink
+            create_symlink "$src_file" "$dst_file"
 
         done
         # aln |
