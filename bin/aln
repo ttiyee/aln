@@ -10,14 +10,27 @@
     script_name=$( basename $0 )
     script_verbose=
 
+    # ignore(s)
+    ignore_paths[0]='.git'
+    ignore_paths[1]='README.md'
+
 
     # | function(s)
 
-        function error {
+        function ignore_path {
+            for i in "${ignore_paths[@]}"; do       # iterate - ignores
+                if [[ "$1" == *"$i"* ]]; then       # check   - valid
+                    return 1                        # return  - invalid
+                fi
+            done
+            return 0                                # return  - valid
+        }
+
+        function log_error {
             logger -s -p user.error -t "$script_name" "$@"
         }
 
-        function log {
+        function log_notice {
             logger -s -p user.notice -t "$script_name" "$@"
         }
 
@@ -49,19 +62,24 @@
         done
 
         # check - path(s)
-        [ ! -d "$src" ] && error "'$src' not found." && exit 2
-        [ ! -d "$dst" ] && error "'$dst' not found." && exit 2
+        [ ! -d "$src" ] && log_error "'$src' not found." && exit 2
+        [ ! -d "$dst" ] && log_error "'$dst' not found." && exit 2
 
         # realpath - path(s)
         src=$( realpath "$src" )
         dst=$( realpath "$dst" )
 
         # | aln
-        for f in `find "$src" ! -wholename *'/.git'* -type f`; do
+        for f in `find "$src" -type f`; do
 
             # path(s)
             src_file=$( realpath $f )
             dst_file="$dst""/${src_file#$src/}"
+
+            # ? - ignore - path
+            if ! ignore_path "$src_file"; then
+                continue
+            fi
 
             # ? - file - not - exists - and - not symlink
             if [ ! -e "$dst_file" ] && [ ! -L "$dst_file" ]; then
@@ -71,7 +89,7 @@
 
                 # create - folder
                 mkdir -p "$dst_folder"
-                log "mkdir -p '$dst_folder'"
+                log_notice "mkdir -p '$dst_folder'"
 
             fi
 
@@ -83,13 +101,13 @@
 
                 # mv - backup
                 mv "$dst_file" "$dst_file_backup"
-                log "mv '$dst_file' '$dst_file_backup'"
+                log_notice "mv '$dst_file' '$dst_file_backup'"
 
             fi
 
             # symlink - create
             ln -sf "$src_file"  "$dst_file"
-            log    "ln -sf '$src_file' '$dst_file'"
+            log_notice "ln -sf '$src_file' '$dst_file'"
 
         done
         # aln |
