@@ -48,8 +48,8 @@
             # file
             file="$1"
 
-            # ? - file - not - exists - and - not symlink
-            if [ ! -e "$file" ] && [ ! -L "$file" ]; then
+            # ? - file - not - exists - and - not symlink - and - not directory
+            if [ ! -e "$file" ] && [ ! -L "$file" ] && [ ! -d "$file" ]; then
 
                 # path(s) - folder
                 folder="`dirname "$file"`"
