@@ -142,6 +142,9 @@
         src=$( realpath "$src" )
         dst=$( realpath "$dst" )
 
+        # ? - dst - root
+        if [[ "$dst" = "/" ]]; then dst=""; fi
+
         # | aln
         for f in `find "$src" -type f`; do
 
