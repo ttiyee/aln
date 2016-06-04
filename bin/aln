@@ -10,10 +10,10 @@
     script_name=$( basename $0 )
     script_verbose=
 
-    # ignore(s)
-    ignore_paths[0]='.git/'
-    ignore_paths[1]='README.md'
-    ignore_paths[2]='INSTALL'
+    # ignore
+    ignore[0]='.git/'
+    ignore[1]='README.md'
+    ignore[2]='INSTALL'
 
 
     # | function(s)
@@ -82,12 +82,20 @@
 
         }
 
-        function ignore_path {
+        function log_error {
+            logger -s -p user.error -t "$script_name" "$@"
+        }
 
-            # iterate - ignore -paths
-            for i in "${ignore_paths[@]}"; do
+        function log_notice {
+            logger -s -p user.notice -t "$script_name" "$@"
+        }
 
-                # ? - return - invalid
+        function valid_path {
+
+            # iterate - ignore - strings
+            for i in "${ignore[@]}"; do
+
+                # ? - match - ignore
                 if [[ "$1" == *"$i"* ]]; then
                     return 1
                 fi
@@ -97,14 +105,6 @@
             # return - valid
             return 0
 
-        }
-
-        function log_error {
-            logger -s -p user.error -t "$script_name" "$@"
-        }
-
-        function log_notice {
-            logger -s -p user.notice -t "$script_name" "$@"
         }
 
         function usage {
@@ -152,8 +152,8 @@
             src_file=$( realpath $f )
             dst_file="$dst""/${src_file#$src/}"
 
-            # ? - ignore - path
-            if ! ignore_path "$src_file"; then
+            # ? - valid - path
+            if ! valid_path "$src_file"; then
                 continue
             fi
 
