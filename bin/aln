@@ -8,12 +8,13 @@
 
     # global(s)
     script_name=$( basename $0 )
-    script_verbose=
 
     # ignore
     ignore[0]='.git/'
     ignore[1]='README.md'
     ignore[2]='INSTALL'
+
+
 
 
     # | feature(s)
@@ -113,7 +114,7 @@
         }
 
         function usage {
-            echo "$script_name usage: $script_name [-s src/path] [-d dest/path]"
+            echo "$script_name usage: $script_name [-s|--source path] [-d|--destination path]"
         }
 
     # stdout/stderr |
@@ -125,17 +126,23 @@
         [ $# -eq 0 ] && usage && exit
 
         # arg(s)
-        while getopts ":d:hs:v" FLAG; do
-            case "$FLAG" in
-                d)  dst="$OPTARG"
-                    ;;
-                h)  usage
-                    exit 2
-                    ;;
-                s)  src="$OPTARG"
-                    ;;
-                v)  script_verbose=1
-                    ;;
+        while [[ $# -gt 0 ]]
+        do
+            case "$1" in
+                -d|--destination)   dst="$2"
+                                    shift
+                                    shift
+                                    ;;
+                -h)                 usage
+                                    exit 2
+                                    ;;
+                -s|--source)        src="$2"
+                                    shift
+                                    shift
+                                    ;;
+                *)                  usage
+                                    exit 2
+                                    ;;
             esac
         done
 
