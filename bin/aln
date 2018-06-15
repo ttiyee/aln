@@ -16,7 +16,7 @@
     ignore[2]='INSTALL'
 
 
-    # | function(s)
+    # | feature(s)
 
         function backup_path {
 
@@ -31,7 +31,7 @@
 
                 # ? - mv - backup - valid
                 if mv "$file" "$file_backup"; then
-                    log_notice "mv '$file' '$file_backup'"
+                    stdout "mv '$file' '$file_backup'"
                 else
                     return 1
                 fi
@@ -56,7 +56,7 @@
 
                 # ? - create - folder - valid
                 if mkdir -p "$folder"; then
-                    log_notice "mkdir -p '$folder'"
+                    stdout "mkdir -p '$folder'"
                 else
                     return 1
                 fi
@@ -72,7 +72,7 @@
 
             # ? - symlink - valid
             if ln -sf "$1" "$2"; then
-                log_notice "ln -sf '$1' '$2'"
+                stdout "ln -sf '$1' '$2'"
             else
                 return 1
             fi
@@ -80,14 +80,6 @@
             # return - valid
             return 0
 
-        }
-
-        function log_error {
-            logger -s -p user.error -t "$script_name" "$@"
-        }
-
-        function log_notice {
-            logger -s -p user.notice -t "$script_name" "$@"
         }
 
         function valid_path {
@@ -107,11 +99,24 @@
 
         }
 
+    # feature(s) |
+
+
+    # | stdout/stderr
+
+        function stderr {
+            echo "Error: $@"
+        }
+
+        function stdout {
+            echo "$@"
+        }
+
         function usage {
             echo "$script_name usage: $script_name [-s src/path] [-d dest/path]"
         }
 
-    # function(s) |
+    # stdout/stderr |
 
 
     # | main
@@ -135,8 +140,8 @@
         done
 
         # check - path(s)
-        [ ! -d "$src" ] && log_error "'$src' not found." && exit 2
-        [ ! -d "$dst" ] && log_error "'$dst' not found." && exit 2
+        [ ! -d "$src" ] && stderr "'$src' not found." && exit 2
+        [ ! -d "$dst" ] && stderr "'$dst' not found." && exit 2
 
         # realpath - path(s)
         src=$( realpath "$src" )
